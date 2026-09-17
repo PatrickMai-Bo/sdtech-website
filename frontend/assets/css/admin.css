@@ -1,0 +1,242 @@
+/* ===========================================================
+ * admin.css — 后台补充样式层
+ * 补充 Tailwind 不便于表达的部分：表格斑马纹、侧栏抽屉、表单、
+ * Toast / Modal 细节、抽屉滑入、图片上传预览控件。
+ * 动效同样受 app.css 的 prefers-reduced-motion 全局降级约束。
+ * =========================================================== */
+
+/* ---------- 1. 后台基础排版 ---------- */
+body.sd-admin {
+  background-color: #f7f8fa;
+  font-size: 14px;
+}
+
+/* ---------- 2. 左侧导航（240px）与顶栏（56px） ---------- */
+.sd-admin-sidebar {
+  width: 240px;
+  flex: 0 0 240px;
+  background-color: #ffffff;
+  border-right: 1px solid #e2e6ea;
+  transform: translateX(-100%);
+  transition: transform 250ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.sd-admin-sidebar.is-open {
+  transform: translateX(0);
+}
+@media (min-width: 1024px) {
+  .sd-admin-sidebar {
+    transform: none;
+  }
+}
+.sd-admin-topbar {
+  height: 56px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e2e6ea;
+}
+.sd-admin-main {
+  min-width: 0;
+}
+.sd-admin-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: #3a3f45;
+  font-size: 14px;
+  transition: background-color 200ms cubic-bezier(0.4, 0, 0.2, 1), color 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.sd-admin-nav-item:hover {
+  background-color: #edf0f3;
+  color: #1f2328;
+}
+.sd-admin-nav-item.is-active {
+  background-color: #eaf0f7;
+  color: #2e5a87;
+  font-weight: 500;
+}
+
+/* ---------- 3. 表格：斑马纹 + 紧凑单元格 ---------- */
+.sd-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.sd-table th {
+  text-align: left;
+  font-weight: 500;
+  color: #5a6169;
+  background-color: #f7f8fa;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e2e6ea;
+  white-space: nowrap;
+}
+.sd-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e2e6ea;
+  color: #3a3f45;
+  vertical-align: middle;
+}
+.sd-table tbody tr:nth-child(even) {
+  background-color: #f7f8fa;
+}
+.sd-table tbody tr:hover {
+  background-color: #eaf0f7;
+}
+/* 未读留言加粗 */
+.sd-table tr.is-unread td {
+  font-weight: 600;
+  color: #1f2328;
+}
+
+/* ---------- 4. 表单 ---------- */
+.sd-field {
+  margin-bottom: 16px;
+}
+.sd-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: #5a6169;
+}
+.sd-required::after {
+  content: ' *';
+  color: #b08d57;
+}
+.sd-hint {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #8b929a;
+}
+.sd-error {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #5a6169;
+}
+.sd-textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+
+/* ---------- 5. 抽屉（编辑面板） ---------- */
+.sd-drawer-panel {
+  transform: translateX(100%);
+  transition: transform 250ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.sd-drawer-panel.is-open {
+  transform: translateX(0);
+}
+.sd-mask {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.sd-mask.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ---------- 6. Toast ---------- */
+.sd-toast-wrap {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  pointer-events: none;
+}
+.sd-toast {
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #ffffff;
+  background-color: #1f2328;
+  box-shadow: 0 8px 24px rgba(31, 35, 40, 0.16);
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: opacity 200ms cubic-bezier(0.4, 0, 0.2, 1), transform 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.sd-toast.is-in {
+  opacity: 1;
+  transform: none;
+}
+.sd-toast.is-success { background-color: #4a7c59; }
+.sd-toast.is-error { background-color: #1f2328; }
+.sd-toast.is-info { background-color: #2e5a87; }
+
+/* ---------- 7. Modal ---------- */
+.sd-modal-mask {
+  opacity: 0;
+  transition: opacity 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.sd-modal-mask.is-open { opacity: 1; }
+.sd-modal-panel {
+  opacity: 0;
+  transform: scale(0.98);
+  transition: opacity 200ms cubic-bezier(0.4, 0, 0.2, 1), transform 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.sd-modal-panel.is-open {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* ---------- 8. 上传预览控件 ---------- */
+.sd-upload-preview {
+  width: 120px;
+  height: 90px;
+  border: 1px solid #e2e6ea;
+  border-radius: 8px;
+  background-color: #edf0f3;
+  object-fit: cover;
+  display: block;
+}
+.sd-upload-empty {
+  width: 120px;
+  height: 90px;
+  border: 1px dashed #e2e6ea;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #8b929a;
+  background-color: #f7f8fa;
+}
+/* 案例多图排序项 */
+.sd-image-item {
+  position: relative;
+  width: 112px;
+  border: 1px solid #e2e6ea;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #f7f8fa;
+}
+.sd-image-item.is-cover {
+  border-color: #3b6ea5;
+}
+
+/* ---------- 9. 折叠分组 ---------- */
+.sd-group-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 250ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.sd-group-body.is-open {
+  max-height: 3000px;
+}
+.sd-group-arrow {
+  transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.sd-group.is-open .sd-group-arrow {
+  transform: rotate(90deg);
+}
+
+/* ---------- 10. 移动端：表格容器横向滚动 ---------- */
+.sd-admin-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}

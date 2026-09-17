@@ -1,0 +1,72 @@
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    # A-02：后台会话 8 小时；Cookie HttpOnly + SameSite=Lax + Path=/
+    session:
+      timeout: 8h
+      cookie:
+        http-only: true
+        same-site: lax
+        path: /
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
+
+spring:
+  application:
+    name: sdtech-website
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # 连接串与账号全部走环境变量，仓库内不出现任何真实凭据
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://${DB_HOST:mysql}:${DB_PORT:3306}/${DB_NAME:sdtech}?useUnicode=true&characterEncoding=utf8mb4&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false}
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
+    hikari:
+      minimum-idle: 2
+      maximum-pool-size: 10
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  # D6：数据由 docker-entrypoint-initdb.d 挂载导入，应用侧不做初始化
+  sql:
+    init:
+      mode: never
+  jackson:
+    # D12：统一 yyyy-MM-dd HH:mm:ss（Asia/Shanghai），不用 ISO-8601
+    time-zone: Asia/Shanghai
+    date-format: yyyy-MM-dd HH:mm:ss
+    serialization:
+      write-dates-as-timestamps: false
+  mvc:
+    throw-exception-if-no-handler-found: true
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+  global-config:
+    db-config:
+      id-type: auto
+      # 逻辑删除：仅 biz_service / service_item / case_project / quote_item 含 deleted 字段
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+# 站点自定义配置
+sdtech:
+  upload:
+    # 容器内挂载命名卷；本地调试时可覆盖为 ./uploads
+    dir: ${UPLOAD_DIR:/app/uploads}
+    max-size: 5242880
+    allowed-extensions: jpg,jpeg,png,webp,gif,svg
+
+# 管理员播种：仅在此处出现一次默认占位凭据，生产请通过环境变量注入
+admin:
+  seed:
+    username: ${ADMIN_USERNAME:admin}
+    password: ${ADMIN_PASSWORD:admin123}
+
+logging:
+  level:
+    root: INFO
+    com.sdtech.website: INFO

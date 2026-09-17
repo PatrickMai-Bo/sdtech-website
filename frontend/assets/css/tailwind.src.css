@@ -1,0 +1,49 @@
+/* Tailwind 编译入口：@tailwind 三件套 + 少量 @layer 微调 */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-white text-ink font-sans antialiased;
+  }
+  /* 全站纯文本：多行内容靠 pre-wrap 保留换行 */
+  .pre-wrap {
+    white-space: pre-wrap;
+  }
+}
+
+@layer components {
+  /* 页面内容容器：桌面 32px / 移动 20px，最大 1200px */
+  .sd-container {
+    @apply mx-auto w-full max-w-[1200px] px-5 md:px-8;
+  }
+  /* 通用卡片：12px 圆角 + 1px 边框 + 克制的 hover 过渡 */
+  .sd-card {
+    @apply rounded-card border border-line bg-white transition-all duration-200;
+  }
+  .sd-card-hover:hover {
+    @apply -translate-y-0.5 border-primary/40 shadow-[0_8px_24px_rgba(31,35,40,0.08)];
+  }
+  /* 主按钮 */
+  .sd-btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-ctl px-6 py-3 text-sm font-medium transition-colors duration-200;
+  }
+  .sd-btn-primary {
+    @apply sd-btn bg-primary text-white hover:bg-primaryDark;
+  }
+  .sd-btn-outline {
+    @apply sd-btn border border-line bg-white text-inkDeep hover:border-primary hover:text-primary;
+  }
+  /* 表单控件 */
+  .sd-input {
+    @apply w-full rounded-ctl border border-line bg-white px-3 py-2 text-sm text-ink outline-none transition-colors duration-200 placeholder:text-inkWeak focus:border-primary;
+  }
+  /* 分区标题小标签 */
+  .sd-eyebrow {
+    @apply text-xs font-medium tracking-[0.18em] text-inkWeak uppercase;
+  }
+}

@@ -1,0 +1,15 @@
+# 镜像构建上下文排除项：只保留 backend/ docker/ 相关内容
+.git
+.gitignore
+.env
+docs/
+sql/
+frontend/
+nginx/
+docker-compose.yml
+README.md
+tailwind.config.js
+backend/target/
+**/target/
+**/node_modules/
+**/*.log

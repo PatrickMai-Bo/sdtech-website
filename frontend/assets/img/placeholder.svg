@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600" role="img" aria-label="SDTech 图片占位">
+  <rect width="800" height="600" fill="#EDF0F3"/>
+  <g fill="#8B929A" opacity="0.55">
+    <circle cx="400" cy="262" r="66"/>
+    <path d="M228 452l118-118a26 26 0 0 1 37 0l71 71 45-45a26 26 0 0 1 37 0l36 36v90a24 24 0 0 1-24 24H252a24 24 0 0 1-24-24v-34z"/>
+  </g>
+  <g fill="#8B929A" opacity="0.28">
+    <rect x="84" y="84" width="112" height="12" rx="6"/>
+    <rect x="84" y="112" width="72" height="12" rx="6"/>
+    <rect x="84" y="504" width="180" height="12" rx="6"/>
+    <rect x="604" y="84" width="112" height="112" rx="12"/>
+  </g>
+  <text x="400" y="540" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, PingFang SC, Microsoft YaHei, sans-serif" font-size="22" fill="#8B929A" opacity="0.7">SDTech</text>
+</svg>
