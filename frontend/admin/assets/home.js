@@ -52,9 +52,9 @@
       var imageCtl = common.imageField({ value: item.imageUrl || item.value || '' });
       return {
         node: imageCtl.node,
+        // image 类型只回写 imageUrl，保留原 value（避免把图片地址写进文本列）
         read: function () {
-          var url = imageCtl.getValue();
-          return { value: url, imageUrl: url };
+          return { value: item.value || '', imageUrl: imageCtl.getValue() };
         }
       };
     }
@@ -113,14 +113,17 @@
     });
 
     saveBtn.addEventListener('click', function () {
-      var payloadItems = fields.map(function (entry) {
+      var payloadItems = fields.map(function (entry, index) {
         var read = entry.control.read();
         return {
           key: entry.raw.key,
           value: read.value,
           imageUrl: read.imageUrl || '',
           valueType: entry.raw.valueType || 'text',
-          label: entry.raw.label || entry.raw.key
+          label: entry.raw.label || entry.raw.key,
+          // 回传原 sortOrder，避免整组替换后排序值被重置为数组下标
+          sortOrder: entry.raw.sortOrder === undefined || entry.raw.sortOrder === null
+            ? index : entry.raw.sortOrder
         };
       });
       saveBtn.disabled = true;
