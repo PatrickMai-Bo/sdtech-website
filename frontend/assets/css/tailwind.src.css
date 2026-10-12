@@ -21,12 +21,16 @@
   .sd-container {
     @apply mx-auto w-full max-w-[1200px] px-5 md:px-8;
   }
-  /* 通用卡片：12px 圆角 + 1px 边框 + 克制的 hover 过渡 */
+  /* 通用卡片：12px 圆角 + 1px 边框 + 克制的 hover 过渡（上浮 2px / 200ms） */
   .sd-card {
     @apply rounded-card border border-line bg-white transition-all duration-200;
   }
   .sd-card-hover:hover {
-    @apply -translate-y-0.5 border-primary/40 shadow-[0_8px_24px_rgba(31,35,40,0.08)];
+    @apply -translate-y-0.5 border-primary shadow-[0_8px_24px_rgba(31,35,40,0.06)];
+  }
+  /* 深色 feature 卡（首页业务卡第一张） */
+  .sd-feature-dark {
+    @apply rounded-card border border-white/10 bg-ink text-white transition-all duration-200;
   }
   /* 主按钮 */
   .sd-btn {
@@ -38,12 +42,58 @@
   .sd-btn-outline {
     @apply sd-btn border border-line bg-white text-inkDeep hover:border-primary hover:text-primary;
   }
-  /* 表单控件 */
+  /* 表单控件：44px 统一高度，聚焦主色边框 + 淡光晕 */
   .sd-input {
-    @apply w-full rounded-ctl border border-line bg-white px-3 py-2 text-sm text-ink outline-none transition-colors duration-200 placeholder:text-inkWeak focus:border-primary;
+    @apply h-11 w-full rounded-ctl border border-line bg-white px-4 text-sm text-ink outline-none transition-colors duration-200 placeholder:text-inkWeak focus:border-primary focus:ring-4 focus:ring-primary/10;
   }
-  /* 分区标题小标签 */
+  .sd-textarea {
+    @apply h-auto min-h-[132px] py-2.5;
+  }
+  .sd-field {
+    @apply mb-5;
+  }
+  .sd-label {
+    @apply mb-2 block text-sm font-medium text-inkDeep;
+  }
+  .sd-label.sd-required::after {
+    content: ' *';
+    color: #3b6ea5;
+  }
+  .sd-error {
+    @apply mt-1.5 text-xs text-inkMid;
+  }
+  /* 分区标题小标签（eyebrow） */
   .sd-eyebrow {
     @apply text-xs font-medium tracking-[0.18em] text-inkWeak uppercase;
+  }
+  /* Hero 眉批 pill（主色浅底 + 主色字） */
+  .sd-eyebrow-pill {
+    @apply inline-flex items-center rounded-full bg-primarySoft px-3 py-1 text-xs font-medium text-primary;
+  }
+  /* Hero 平台信任条小标签 */
+  .sd-trust-tag {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-line bg-white/70 px-3 py-1.5 text-xs text-inkWeak;
+  }
+  /* 报价“推荐”角标 */
+  .sd-badge {
+    @apply inline-flex items-center rounded-full bg-primary px-2.5 py-1 text-[11px] font-medium text-white;
+  }
+  /* 案例页筛选 pill */
+  .sd-chip {
+    @apply inline-flex h-9 items-center rounded-full border px-4 text-sm transition-colors duration-200;
+  }
+  .sd-chip-on {
+    @apply border-primary bg-primary text-white;
+  }
+  .sd-chip-off {
+    @apply border-line bg-white text-inkMid hover:border-primary hover:text-primary;
+  }
+  /* CTA 深色区内的透明白边按钮 */
+  .sd-cta-btn {
+    @apply inline-flex shrink-0 items-center justify-center gap-2 rounded-ctl border border-white/50 px-6 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-white/10;
+  }
+  /* 深色页脚链接 */
+  .sd-foot-link {
+    @apply text-sm text-white/70 transition-colors duration-200 hover:text-white;
   }
 }

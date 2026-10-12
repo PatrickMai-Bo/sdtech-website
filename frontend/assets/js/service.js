@@ -33,26 +33,19 @@
     return node;
   }
 
-  function sectionHead(title, desc) {
-    return el('div', { class: 'max-w-[720px] mb-10' }, [
-      el('h2', { class: 'text-[24px] md:text-[30px] font-semibold tracking-tight', text: title }),
-      desc ? el('p', { class: 'mt-3 text-[15px] text-inkMid pre-wrap', text: desc }) : null
-    ]);
+  /** 两位序号：1 → '01' */
+  function pad(index) {
+    return ('0' + (index + 1)).slice(-2);
   }
 
-  /* ---------------- 1. Banner ---------------- */
+  /* ---------------- 1. Banner（炭黑底白字，形成节奏对比） ---------------- */
   function renderBanner() {
     var box = host('banner-section');
     if (!box) return;
     var title = window.Layout.txt('banner', SLUG + '.title', '');
     var subtitle = window.Layout.txt('banner', SLUG + '.subtitle', '');
     if (title) document.title = title;
-    box.appendChild(el('div', { class: 'bg-primarySoft border-b border-line' }, [
-      el('div', { class: 'sd-container py-12 md:py-16' }, [
-        el('h1', { class: 'text-[28px] md:text-[36px] font-semibold tracking-tight text-ink', text: title || '业务详情' }),
-        subtitle ? el('p', { class: 'mt-4 text-[15px] text-inkMid pre-wrap max-w-[680px]', text: subtitle }) : null
-      ])
-    ]));
+    box.appendChild(ui.banner(title, subtitle, { dark: true, fallbackTitle: '业务详情' }));
   }
 
   /* ---------------- 2. 服务介绍段 ---------------- */
@@ -61,26 +54,31 @@
     if (!box) return;
     if (!ok) { box.appendChild(ui.fallback(null, '服务介绍')); return; }
     var summary = (detail && detail.summary) || '';
+    if (!summary) return;
     box.appendChild(el('div', { class: 'sd-container py-14 md:py-16' }, [
-      el('p', { class: 'text-[15px] md:text-base text-inkMid pre-wrap max-w-[860px]', text: summary })
+      el('span', { class: 'block h-[3px] w-8 rounded-full bg-primary mb-6' }),
+      el('p', { class: 'max-w-[860px] text-base md:text-lg leading-relaxed text-inkDeep pre-wrap', text: summary })
     ]));
   }
 
-  /* ---------------- 3. 细分服务卡片 ---------------- */
+  /* ---------------- 3. 细分服务卡片（编号 + 图标） ---------------- */
   function renderItems(items, ok) {
     var box = host('items-section');
     if (!box) return;
     if (!ok) { box.appendChild(ui.fallback(null, '细分服务')); return; }
     var grid = el('div', { class: 'grid gap-6 md:grid-cols-2' });
-    (items || []).forEach(function (item) {
+    (items || []).forEach(function (item, index) {
       grid.appendChild(el('div', { class: 'sd-card sd-card-hover p-6' }, [
-        el('div', { class: 'mb-4 inline-flex h-10 w-10 items-center justify-center rounded-icon bg-primarySoft text-primary', html: ui.icon(item.icon) }),
-        el('h3', { class: 'text-[16px] font-semibold text-ink', text: item.title || '' }),
+        el('div', { class: 'flex items-start justify-between' }, [
+          el('div', { class: 'inline-flex h-12 w-12 items-center justify-center rounded-icon bg-primarySoft text-primary', html: ui.icon(item.icon) }),
+          el('span', { class: 'text-sm font-mono text-inkWeak', text: pad(index) })
+        ]),
+        el('h3', { class: 'mt-5 text-[16px] font-semibold text-ink', text: item.title || '' }),
         el('p', { class: 'mt-2 text-sm text-inkMid pre-wrap', text: item.description || '' })
       ]));
     });
-    box.appendChild(el('div', { class: 'sd-container py-4 md:py-6' }, [
-      sectionHead('细分服务'),
+    box.appendChild(el('div', { class: 'sd-container py-14 md:py-16' }, [
+      ui.sectionHead('SERVICES', '细分服务', ''),
       (items && items.length) ? grid : ui.empty(null, '敬请期待')
     ]));
   }
@@ -90,15 +88,15 @@
     var box = host('deliverables-section');
     if (!box) return;
     if (!ok) { box.appendChild(ui.fallback(null, '交付物说明')); return; }
-    var wrap = el('ul', { class: 'grid gap-3 sm:grid-cols-2' });
+    var wrap = el('ul', { class: 'grid gap-4 sm:grid-cols-2' });
     (list || []).forEach(function (item) {
-      wrap.appendChild(el('li', { class: 'flex items-start gap-3 text-[15px] text-inkDeep' }, [
-        el('span', { class: 'mt-[2px] text-success', html: ui.ICONS.check }),
-        el('span', { class: 'pre-wrap', text: item.content || '' })
+      wrap.appendChild(el('li', { class: 'sd-card sd-card-hover flex items-start gap-3 p-5' }, [
+        el('span', { class: 'mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-success/10 text-success', html: ui.ICONS.checkCircle }),
+        el('span', { class: 'text-[15px] text-inkDeep pre-wrap', text: item.content || '' })
       ]));
     });
     box.appendChild(el('div', { class: 'sd-container py-14 md:py-16' }, [
-      sectionHead('交付物'),
+      ui.sectionHead('DELIVERABLES', '交付物', ''),
       (list && list.length) ? wrap : ui.empty(null, '敬请期待')
     ]));
   }
@@ -110,8 +108,14 @@
     var body = el('div', { class: 'sd-container' }, [ui.skeleton(4, 'sm:grid-cols-2 lg:grid-cols-4')]);
     box.appendChild(el('div', { class: 'sd-container pb-8' }, [
       el('div', { class: 'flex flex-wrap items-end justify-between gap-4' }, [
-        sectionHead('相关案例'),
-        el('a', { href: '/cases.html?category=' + encodeURIComponent(SLUG), class: 'sd-btn-outline shrink-0' }, ['查看全部'])
+        ui.sectionHead('CASES', '相关案例', '', { bare: true }),
+        el('a', {
+          href: '/cases.html?category=' + encodeURIComponent(SLUG),
+          class: 'sd-btn-outline group shrink-0'
+        }, [
+          '查看全部',
+          el('span', { class: 'transition-transform duration-200 group-hover:translate-x-1', html: ui.ICONS.arrowRight })
+        ])
       ])
     ]));
     box.appendChild(body);
@@ -121,13 +125,7 @@
         var records = (page && page.records) || [];
         var grid = el('div', { class: 'grid gap-6 sm:grid-cols-2 lg:grid-cols-4' });
         records.forEach(function (item) {
-          grid.appendChild(el('div', { class: 'sd-card overflow-hidden' }, [
-            ui.img(item.coverImage, item.title, 800, 600, 'h-[170px] w-full object-cover'),
-            el('div', { class: 'p-5' }, [
-              el('h3', { class: 'text-[15px] font-semibold text-ink', text: item.title || '' }),
-              el('p', { class: 'mt-2 text-sm text-inkMid pre-wrap line-clamp-3', text: item.summary || '' })
-            ])
-          ]));
+          grid.appendChild(ui.caseCard(item, { summaryClamp: 2 }));
         });
         body.textContent = '';
         body.appendChild(records.length ? grid : ui.empty(null, '敬请期待'));
@@ -139,13 +137,13 @@
       });
   }
 
-  /* ---------------- 6. 参考报价 ---------------- */
+  /* ---------------- 6. 参考报价（与报价页同款卡片：面议虚线 / 数值主色） ---------------- */
   function renderQuotes() {
     var box = host('quotes-section');
     if (!box) return;
     var body = el('div', { class: 'sd-container' }, [ui.skeleton(3, 'md:grid-cols-3')]);
     box.appendChild(el('div', { class: 'sd-container pb-8' }, [
-      sectionHead('参考报价'),
+      ui.sectionHead('PRICING', '参考报价', ''),
       el('p', { class: 'text-xs text-inkWeak', text: '价格仅为参考，最终按需求评估' })
     ]));
     box.appendChild(body);
@@ -155,12 +153,7 @@
         var items = list || [];
         var grid = el('div', { class: 'grid gap-6 md:grid-cols-3' });
         items.forEach(function (item) {
-          grid.appendChild(el('div', { class: 'sd-card p-6' }, [
-            el('p', { class: 'text-sm text-inkWeak', text: item.itemName || '' }),
-            el('p', { class: 'mt-3 text-[26px] font-semibold text-ink', text: item.priceText || '面议' }),
-            item.priceUnit ? el('p', { class: 'mt-1 text-xs text-inkWeak', text: item.priceUnit }) : null,
-            item.description ? el('p', { class: 'mt-4 text-sm text-inkMid pre-wrap', text: item.description }) : null
-          ]));
+          grid.appendChild(ui.quoteCard(item, {}));
         });
         body.textContent = '';
         body.appendChild(items.length ? grid : ui.empty(null, '敬请期待'));
@@ -184,18 +177,7 @@
           var url = shop.linkUrl || '';
           return (url && url !== '#') || shop.qrcodeImage;
         });
-        items.forEach(function (shop) {
-          var url = shop.linkUrl || '';
-          var body = el('div', { class: 'sd-card p-5 flex items-center gap-4' }, [
-            el('div', { class: 'h-11 w-11 shrink-0 rounded-icon bg-surface flex items-center justify-center text-inkMid', html: ui.icon(shop.icon) }),
-            el('p', { class: 'text-[15px] font-medium text-ink truncate', text: shop.title || '' })
-          ]);
-          if (url && url !== '#') {
-            grid.appendChild(el('a', { href: url, target: '_blank', rel: 'noopener noreferrer', class: 'block' }, [body]));
-          } else {
-            grid.appendChild(body);
-          }
-        });
+        items.forEach(function (shop) { grid.appendChild(ui.shopCard(shop, {})); });
         if (!items.length) {
           grid.appendChild(el('a', { href: '/contact.html', class: 'sd-btn-primary justify-self-start' }, ['联系咨询']));
         }

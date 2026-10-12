@@ -2,9 +2,9 @@
  * layout.js — 前台公共布局层（挂载到 window.Layout）
  *
  * 职责：从 GET /api/public/site/content 取全站 KV，渲染
- *   - #site-header：顶部导航（8 项，当前页高亮，移动端汉堡抽屉）
- *   - #site-footer：页脚（简介 / 导航 / 联系方式 / 店铺入口 / 备案 / 版权）
- *   - #site-cta  ：底部咨询 CTA
+ *   - #site-header：吸顶导航（毛玻璃、滚动阴影、当前页主色 + 底部 2px 指示条、移动端抽屉）
+ *   - #site-footer：深色页脚（简介 / 导航 / 联系方式 / 店铺入口 / 备案 / 版权）
+ *   - #site-cta  ：深色渐变咨询 CTA（主色渐变 + 白字 + 透明白边按钮 + 几何装饰）
  *
  * 兜底：接口失败时注入纯结构兜底导航（不白屏），页脚显示失败提示，CTA 隐藏。
  * 所有接口字符串一律经 ui.esc / textContent 入 DOM。
@@ -125,14 +125,19 @@
     var brand = txt('global', 'company_short', txt('global', 'company_name', 'SDTech'));
     var logo = image('global', 'logo_image', '/assets/img/favicon.svg');
 
-    // 桌面导航项
-    var desktopList = el('nav', { class: 'hidden lg:flex items-center gap-1', 'aria-label': '主导航' });
+    // 桌面导航项：通栏高度，当前页主色 + 底部 2px 指示条
+    var desktopList = el('nav', { class: 'hidden lg:flex lg:h-[72px] lg:items-stretch lg:gap-1', 'aria-label': '主导航' });
     items.forEach(function (item) {
-      var activeCls = isActive(item.url, active) ? ' text-primary font-medium' : ' text-inkDeep hover:text-primary';
-      desktopList.appendChild(el('a', {
+      var on = isActive(item.url, active);
+      var link = el('a', {
         href: item.url,
-        class: 'px-3 py-2 text-[15px] rounded-ctl transition-colors duration-200' + activeCls
-      }, [item.title]));
+        class: 'relative flex items-center px-3 text-[15px] transition-colors duration-200 ' +
+          (on ? 'font-medium text-primary' : 'text-inkDeep hover:text-primary')
+      }, [item.title]);
+      if (on) {
+        link.appendChild(el('span', { class: 'absolute inset-x-2 bottom-0 h-0.5 rounded-full bg-primary' }));
+      }
+      desktopList.appendChild(link);
     });
 
     // 右侧咨询按钮
@@ -158,20 +163,34 @@
     ]);
 
     var header = el('header', {
-      class: 'sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-line'
+      class: 'sd-header sticky top-0 z-40 border-b border-line bg-white/80 backdrop-blur'
     }, [headerInner]);
 
-    // ---- 移动端抽屉 ----
+    // 滚动状态：下滑后加深底色与淡阴影
+    function onScroll() {
+      var scrolled = window.scrollY > 8;
+      header.classList.toggle('is-scrolled', scrolled);
+      header.classList.toggle('bg-white/95', scrolled);
+      header.classList.toggle('bg-white/80', !scrolled);
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+
+    // ---- 移动端抽屉（毛玻璃面板） ----
     var drawerLinks = el('nav', { class: 'flex flex-col gap-1 p-4', 'aria-label': '移动导航' });
     items.forEach(function (item) {
-      var activeCls = isActive(item.url, active) ? ' bg-primarySoft text-primary font-medium' : ' text-inkDeep';
+      var on = isActive(item.url, active);
       drawerLinks.appendChild(el('a', {
         href: item.url,
-        class: 'px-4 py-3 rounded-ctl text-[15px] transition-colors duration-200' + activeCls
-      }, [item.title]));
+        class: 'flex items-center justify-between rounded-ctl px-4 py-3 text-[15px] transition-colors duration-200 ' +
+          (on ? 'bg-primarySoft font-medium text-primary' : 'text-inkDeep'),
+      }, [
+        el('span', { text: item.title }),
+        on ? el('span', { class: 'h-5 w-0.5 rounded-full bg-primary' }) : null
+      ]));
     });
     var drawer = el('div', {
-      class: 'sd-drawer fixed top-0 right-0 z-50 h-full w-[78%] max-w-[320px] bg-white border-l border-line shadow-[0_8px_32px_rgba(31,35,40,0.12)] lg:hidden'
+      class: 'sd-drawer fixed top-0 right-0 z-50 h-full w-[78%] max-w-[320px] bg-white/90 backdrop-blur-md border-l border-line shadow-[0_8px_32px_rgba(31,35,40,0.12)] lg:hidden'
     }, [
       el('div', { class: 'flex items-center justify-between h-[72px] px-4 border-b border-line' }, [
         el('span', { class: 'text-sm text-inkWeak', text: '导航' }),
@@ -207,7 +226,7 @@
   }
 
   /* ------------------------------------------------------------------ *
-   * 页脚
+   * 页脚（深色四栏）
    * ------------------------------------------------------------------ */
   function renderFooter(host, navItems, ok) {
     var intro = txt('footer', 'company_intro', '');
@@ -215,34 +234,45 @@
     var copyright = txt('global', 'copyright', '');
     var icp = txt('global', 'icp', '');
     var phone = txt('global', 'phone', '待补充');
-    var email = txt('global', 'email', '待补充');
+    var wechat = txt('global', 'wechat_id', '待补充');
     var address = txt('global', 'address', '待补充');
 
-    var contactBox = el('div', { class: 'flex flex-col gap-2 text-sm text-inkMid' }, [
-      el('div', { class: 'flex items-center gap-2' }, [
-        el('span', { class: 'text-inkWeak', html: ui.ICONS.phone }),
-        el('span', { text: phone })
+    // 第一栏：公司简介 + logo
+    var brandBox = el('div', {}, [
+      el('div', { class: 'flex items-center gap-3' }, [
+        el('div', { class: 'flex h-10 w-10 items-center justify-center rounded-icon bg-white/10' }, [
+          ui.img(image('global', 'logo_image', '/assets/img/favicon.svg'), companyName, 40, 40, 'h-10 w-10 rounded-icon object-cover')
+        ]),
+        el('p', { class: 'text-base font-semibold text-white', text: companyName || 'SDTech' })
       ]),
-      el('div', { class: 'flex items-center gap-2' }, [
-        el('span', { class: 'text-inkWeak', html: ui.ICONS.mail }),
-        el('span', { text: email })
-      ]),
-      el('div', { class: 'flex items-center gap-2' }, [
-        el('span', { class: 'text-inkWeak', html: ui.ICONS.info }),
-        el('span', { text: address })
-      ])
+      el('span', { class: 'mt-5 block h-px w-6 bg-accent' }),
+      el('p', {
+        class: 'mt-4 max-w-[520px] text-sm leading-relaxed text-white/60 pre-wrap',
+        text: intro || (ok ? '' : '内容加载失败，请稍后刷新')
+      })
     ]);
 
-    var navBox = el('nav', { class: 'grid grid-cols-2 gap-2', 'aria-label': '页脚导航' });
+    // 第二栏：全站导航
+    var navBox = el('nav', { class: 'grid grid-cols-2 gap-x-4 gap-y-2', 'aria-label': '页脚导航' });
     navItems.forEach(function (item) {
-      navBox.appendChild(el('a', {
-        href: item.url,
-        class: 'text-sm text-inkMid hover:text-primary transition-colors duration-200',
-        text: item.title
-      }));
+      navBox.appendChild(el('a', { href: item.url, class: 'sd-foot-link', text: item.title }));
     });
 
-    var shopBox = el('div', { class: 'flex flex-wrap gap-3' });
+    // 第三栏：联系方式（电话 / 微信 / 地址）
+    function contactRow(iconSvg, text) {
+      return el('div', { class: 'flex items-start gap-2.5' }, [
+        el('span', { class: 'mt-0.5 shrink-0 text-white/40', html: iconSvg }),
+        el('span', { class: 'text-sm text-white/70 pre-wrap', text: text })
+      ]);
+    }
+    var contactBox = el('div', { class: 'flex flex-col gap-3' }, [
+      contactRow(ui.ICONS.phone, phone),
+      contactRow(ui.ICONS.wechat, wechat),
+      contactRow(ui.ICONS.mapPin, address)
+    ]);
+
+    // 第四栏：店铺快捷链接
+    var shopBox = el('div', { class: 'flex flex-col gap-3' });
     api.get('/public/shop-links', { params: { zone: 'footer' } })
       .then(function (list) {
         (list || []).forEach(function (shop) {
@@ -250,61 +280,58 @@
           var url = shop.linkUrl || '';
           if ((!url || url === '#') && !shop.qrcodeImage) return; // 不死链
           if (!url || url === '#') {
-            shopBox.appendChild(el('span', { class: 'inline-flex items-center gap-2 text-sm text-inkMid' }, [
-              el('span', { class: 'text-inkWeak', html: ui.icon(shop.icon) }),
+            shopBox.appendChild(el('span', { class: 'inline-flex items-center gap-2 text-sm text-white/70' }, [
+              el('span', { class: 'text-white/40', html: ui.icon(shop.icon) }),
               el('span', { text: shop.title || '' })
             ]));
             return;
           }
           shopBox.appendChild(el('a', {
             href: url, target: '_blank', rel: 'noopener noreferrer',
-            class: 'inline-flex items-center gap-2 text-sm text-inkMid hover:text-primary transition-colors duration-200'
+            class: 'inline-flex items-center gap-2 text-sm text-white/70 transition-colors duration-200 hover:text-white'
           }, [
-            el('span', { class: 'text-inkWeak', html: ui.icon(shop.icon) }),
+            el('span', { class: 'text-white/40', html: ui.icon(shop.icon) }),
             el('span', { text: shop.title || '' })
           ]));
         });
         if (!shopBox.childNodes.length) {
-          shopBox.appendChild(el('span', { class: 'text-sm text-inkWeak', text: '店铺入口待补充' }));
+          shopBox.appendChild(el('span', { class: 'text-sm text-white/40', text: '店铺入口待补充' }));
         }
       })
       .catch(function () {
-        shopBox.appendChild(el('span', { class: 'text-sm text-inkWeak', text: '店铺入口暂时无法显示，请稍后刷新' }));
+        shopBox.appendChild(el('span', { class: 'text-sm text-white/40', text: '店铺入口暂时无法显示，请稍后刷新' }));
       });
 
-    var bottom = el('div', { class: 'mt-10 pt-6 border-t border-line flex flex-col md:flex-row md:items-center md:justify-between gap-2' }, [
-      el('p', { class: 'text-xs text-inkWeak', text: copyright || companyName }),
-      el('p', { class: 'text-xs text-inkWeak', text: icp })
+    function footCol(title, node) {
+      return el('div', {}, [
+        el('p', { class: 'mb-4 text-sm font-medium text-white', text: title }),
+        node
+      ]);
+    }
+
+    var bottom = el('div', {
+      class: 'mt-12 flex flex-col gap-2 border-t border-white/10 pt-6 md:flex-row md:items-center md:justify-between'
+    }, [
+      el('p', { class: 'text-xs text-white/40', text: copyright || companyName }),
+      el('p', { class: 'text-xs text-white/40', text: icp })
     ]);
 
-    var inner = el('div', { class: 'sd-container py-12' }, [
-      el('div', { class: 'grid gap-8 md:grid-cols-2 lg:grid-cols-4' }, [
-        el('div', { class: 'lg:col-span-2' }, [
-          el('p', { class: 'text-base font-semibold text-ink mb-3', text: companyName }),
-          el('p', { class: 'text-sm text-inkMid pre-wrap max-w-[520px]', text: intro || (ok ? '' : '内容加载失败，请稍后刷新') })
-        ]),
-        el('div', {}, [
-          el('p', { class: 'text-sm font-medium text-ink mb-3', text: '快速导航' }),
-          navBox
-        ]),
-        el('div', {}, [
-          el('p', { class: 'text-sm font-medium text-ink mb-3', text: '联系我们' }),
-          contactBox,
-          el('div', { class: 'mt-4' }, [
-            el('p', { class: 'text-sm font-medium text-ink mb-3', text: '店铺入口' }),
-            shopBox
-          ])
-        ])
+    var inner = el('div', { class: 'sd-container py-14' }, [
+      el('div', { class: 'grid gap-10 md:grid-cols-2 lg:grid-cols-4' }, [
+        brandBox,
+        footCol('快速导航', navBox),
+        footCol('联系我们', contactBox),
+        footCol('店铺入口', shopBox)
       ]),
       bottom
     ]);
 
     host.textContent = '';
-    host.appendChild(el('footer', { class: 'bg-surfaceSoft border-t border-line' }, [inner]));
+    host.appendChild(el('footer', { class: 'bg-ink' }, [inner]));
   }
 
   /* ------------------------------------------------------------------ *
-   * 底部 CTA
+   * 底部 CTA（深色主色渐变 + 白字 + 透明白边按钮 + 几何装饰）
    * ------------------------------------------------------------------ */
   function renderCta(host) {
     var title = txt('cta', 'title', '');
@@ -314,25 +341,26 @@
     var bg = image('cta', 'background_image', '');
     if (!title && !desc && !btnText) { host.textContent = ''; return; }
 
-    var inner = el('div', { class: 'sd-container py-14' }, [
-      el('div', {
-        class: 'relative overflow-hidden rounded-card bg-primarySoft border border-line px-8 py-12 md:px-16 md:py-16'
-      }, [
-        bg ? ui.img(bg, '', 1600, 600, 'absolute inset-0 h-full w-full object-cover opacity-10') : null,
-        el('div', { class: 'relative flex flex-col md:flex-row md:items-center md:justify-between gap-6' }, [
-          el('div', {}, [
-            el('h2', { class: 'text-2xl md:text-[28px] font-semibold text-ink', text: title }),
-            el('p', { class: 'mt-3 text-[15px] text-inkMid pre-wrap max-w-[560px]', text: desc })
-          ]),
-          btnText ? el('a', { href: btnLink || '/contact.html', class: 'sd-btn-primary shrink-0' }, [
-            btnText,
-            el('span', { class: 'ml-1', html: ui.ICONS.arrowRight })
-          ]) : null
-        ])
+    var shell = el('div', {
+      class: 'relative overflow-hidden rounded-card bg-gradient-to-r from-[#2E5A87] to-[#3B6EA5] px-8 py-12 md:px-14 md:py-14'
+    }, [
+      el('span', { class: 'pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full border border-white/15' }),
+      el('span', { class: 'pointer-events-none absolute -bottom-12 right-24 h-32 w-32 rounded-full bg-white/5' }),
+      bg ? ui.img(bg, '', 1600, 600, 'absolute inset-0 h-full w-full object-cover opacity-10') : null,
+      el('div', { class: 'relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between' }, [
+        el('div', {}, [
+          el('h2', { class: 'text-2xl md:text-[32px] font-semibold leading-tight text-white', text: title }),
+          desc ? el('p', { class: 'mt-3 max-w-[560px] text-[15px] text-white/80 pre-wrap', text: desc }) : null
+        ]),
+        btnText ? el('a', { href: btnLink || '/contact.html', class: 'sd-cta-btn group' }, [
+          btnText,
+          el('span', { class: 'transition-transform duration-200 group-hover:translate-x-1', html: ui.ICONS.arrowRight })
+        ]) : null
       ])
     ]);
+
     host.textContent = '';
-    host.appendChild(inner);
+    host.appendChild(el('div', { class: 'sd-container py-14' }, [shell]));
   }
 
   /* ------------------------------------------------------------------ *

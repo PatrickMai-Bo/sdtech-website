@@ -10,6 +10,7 @@
  *
  * 表单校验：姓名必填 ≤30 字；手机号 ^1[3-9]\d{9}$；需求 5–500 字；
  * 提交期间禁用按钮防重复提交，3s 内给出反馈。
+ * 输入框统一 44px 高度，聚焦主色边框 + 淡光晕（见 tailwind.src.css .sd-input）。
  */
 (function (window, document) {
   'use strict';
@@ -26,13 +27,6 @@
     return node;
   }
 
-  function sectionHead(title, desc) {
-    return el('div', { class: 'mb-8' }, [
-      el('h2', { class: 'text-[22px] md:text-[26px] font-semibold tracking-tight', text: title }),
-      desc ? el('p', { class: 'mt-3 text-[15px] text-inkMid pre-wrap', text: desc }) : null
-    ]);
-  }
-
   /* ---------------- Banner ---------------- */
   function renderBanner() {
     var box = host('banner-section');
@@ -40,30 +34,31 @@
     var title = window.Layout.txt('banner', 'contact.title', '');
     var subtitle = window.Layout.txt('banner', 'contact.subtitle', '');
     if (title) document.title = title;
-    box.appendChild(el('div', { class: 'bg-primarySoft border-b border-line' }, [
-      el('div', { class: 'sd-container py-12 md:py-16' }, [
-        el('h1', { class: 'text-[28px] md:text-[36px] font-semibold tracking-tight text-ink', text: title || '联系我们' }),
-        subtitle ? el('p', { class: 'mt-4 text-[15px] text-inkMid pre-wrap max-w-[680px]', text: subtitle }) : null
-      ])
-    ]));
+    box.appendChild(ui.banner(title, subtitle, { fallbackTitle: '联系我们' }));
   }
 
-  /* ---------------- 微信区 ---------------- */
+  /* ---------------- 微信区（二维码白边卡片 + 阴影） ---------------- */
   function renderWechatBox() {
     var wechatId = window.Layout.txt('contact', 'wechat_id', window.Layout.txt('global', 'wechat_id', '待补充'));
     var note = window.Layout.txt('contact', 'wechat_note', '');
     var qrcode = window.Layout.image('contact', 'wechat_qrcode', '');
 
-    var qr = qrcode
-      ? ui.img(qrcode, '微信二维码', 480, 480, 'h-[160px] w-[160px] rounded-card object-cover border border-line cursor-zoom-in')
-      : el('div', { class: 'h-[160px] w-[160px] rounded-card border border-dashed border-line bg-surfaceSoft flex items-center justify-center text-xs text-inkWeak', text: '二维码待补充' });
+    var qrInner = qrcode
+      ? ui.img(qrcode, '微信二维码', 480, 480, 'h-[168px] w-[168px] rounded-[10px] object-cover cursor-zoom-in')
+      : el('div', {
+        class: 'flex h-[168px] w-[168px] items-center justify-center rounded-[10px] border border-dashed border-line bg-surfaceSoft text-xs text-inkWeak',
+        text: '二维码待补充'
+      });
 
     if (qrcode) {
-      qr.addEventListener('click', function () {
+      qrInner.addEventListener('click', function () {
         var big = ui.img(qrcode, '微信二维码', 800, 800, 'w-full max-w-[420px] rounded-card object-cover');
         ui.modal({ title: '微信二维码', bodyEl: big, size: window.innerWidth < 768 ? 'full' : 'default' });
       });
     }
+
+    // 白边 + 阴影卡片包裹二维码
+    var qr = el('div', { class: 'shrink-0 rounded-card border border-line bg-white p-2 shadow-[0_8px_24px_rgba(31,35,40,0.08)]' }, [qrInner]);
 
     var copyTip = el('span', { class: 'ml-2 text-xs text-success hidden', text: '已复制' });
     var copyBtn = el('button', {
@@ -79,16 +74,16 @@
       });
     });
 
-    var idRow = el('div', { class: 'mt-4 flex items-center gap-2 flex-wrap' }, [
+    var idRow = el('div', { class: 'flex items-center gap-2 flex-wrap' }, [
       el('span', { class: 'text-sm text-inkWeak', text: '微信号' }),
       el('span', { class: 'text-[15px] font-medium text-ink select-all', text: wechatId }),
       copyBtn,
       copyTip
     ]);
 
-    return el('div', { class: 'sd-card p-6' }, [
+    return el('div', { class: 'sd-card p-6 md:p-8' }, [
       el('h2', { class: 'text-[18px] font-semibold text-ink', text: '微信咨询' }),
-      el('div', { class: 'mt-5 flex items-start gap-5' }, [qr, el('div', {}, [idRow])]),
+      el('div', { class: 'mt-5 flex flex-col gap-5 sm:flex-row sm:items-start' }, [qr, el('div', { class: 'pt-1' }, [idRow])]),
       note ? el('p', { class: 'mt-4 text-sm text-inkMid pre-wrap', text: note }) : null
     ]);
   }
@@ -160,7 +155,7 @@
 
     var submitBtn = el('button', { type: 'submit', class: 'sd-btn-primary w-full md:w-auto' }, ['提交留言']);
 
-    var form = el('form', { novalidate: 'novalidate', class: 'sd-card p-6' }, [
+    var form = el('form', { novalidate: 'novalidate', class: 'sd-card p-6 md:p-8' }, [
       el('h2', { class: 'text-[18px] font-semibold text-ink mb-5', text: '需求留言' }),
       field('姓名', true, nameInput, nameErr),
       field('联系电话', true, phoneInput, phoneErr),
@@ -250,7 +245,7 @@
     if (!box) return;
     var title = window.Layout.txt('contact', 'shops_title', '电商店铺');
     var grid = el('div', { class: 'grid gap-4 sm:grid-cols-2 lg:grid-cols-4' });
-    box.appendChild(el('div', { class: 'sd-container' }, [sectionHead(title), grid]));
+    box.appendChild(el('div', { class: 'sd-container' }, [ui.sectionHead('SHOPS', title, ''), grid]));
 
     api.get('/public/shop-links', { params: { zone: 'contact' } })
       .then(function (list) {
@@ -258,21 +253,7 @@
           var url = shop.linkUrl || '';
           return (url && url !== '#') || shop.qrcodeImage;
         });
-        items.forEach(function (shop) {
-          var url = shop.linkUrl || '';
-          var body = el('div', { class: 'sd-card p-5 flex items-center gap-4' }, [
-            el('div', { class: 'h-11 w-11 shrink-0 rounded-icon bg-surface flex items-center justify-center text-inkMid', html: ui.icon(shop.icon) }),
-            el('div', { class: 'min-w-0' }, [
-              el('p', { class: 'text-[15px] font-medium text-ink truncate', text: shop.title || '' }),
-              el('p', { class: 'mt-1 text-xs text-inkWeak', text: shop.platform || '' })
-            ])
-          ]);
-          if (url && url !== '#') {
-            grid.appendChild(el('a', { href: url, target: '_blank', rel: 'noopener noreferrer', class: 'block' }, [body]));
-          } else {
-            grid.appendChild(body);
-          }
-        });
+        items.forEach(function (shop) { grid.appendChild(ui.shopCard(shop, { showPlatform: true })); });
         if (!items.length) grid.appendChild(ui.empty(null, '店铺入口待补充'));
       })
       .catch(function (err) {
@@ -286,7 +267,7 @@
     var box = host('faq-section');
     if (!box) return;
     var container = el('div', { class: 'divide-y divide-line border-y border-line' });
-    box.appendChild(el('div', { class: 'sd-container' }, [sectionHead('常见问题'), container]));
+    box.appendChild(el('div', { class: 'sd-container' }, [ui.sectionHead('FAQ', '常见问题', ''), container]));
 
     api.get('/public/faqs')
       .then(function (list) {
@@ -296,7 +277,7 @@
           var bodyId = 'cfaq-body-' + index;
           container.appendChild(el('div', { class: 'sd-acc-item' }, [
             el('button', {
-              type: 'button', class: 'w-full flex items-center justify-between gap-4 py-5 text-left',
+              type: 'button', class: 'w-full flex items-center justify-between gap-4 py-5 text-left transition-colors duration-200',
               'data-acc-trigger': '1', 'aria-expanded': 'false', 'aria-controls': bodyId
             }, [
               el('span', { class: 'text-[15px] font-medium text-ink', text: item.question || '' }),

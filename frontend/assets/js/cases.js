@@ -2,9 +2,9 @@
  * cases.js — 案例作品页
  *
  * 功能：
- *   - 分类筛选 chips（全部 + /public/cases/categories 返回的分类）
- *   - 网格卡片（3 / 2 / 1 列响应式）
- *   - 点击卡片弹窗展示详情（项目简介 / 技术或制作方式 / 交付成果 / 多图）
+ *   - 分类筛选 pills（全部 + /public/cases/categories 返回的分类；选中=主色实心白字）
+ *   - 网格卡片（3 / 2 / 1 列响应式，4:3 封面 + 分类 pill + hover 放大）
+ *   - 点击卡片弹窗展示详情（左图右信息 / 项目简介 / 技术或制作方式 / 交付成果 / 多图）
  *   - 分页 + URL 参数 ?category=&page=&case= 还原
  *
  * 数据：GET /api/public/cases、/public/cases/categories、/public/cases/{id}
@@ -56,20 +56,14 @@
     var title = window.Layout.txt('banner', 'cases.title', '');
     var subtitle = window.Layout.txt('banner', 'cases.subtitle', '');
     if (title) document.title = title;
-    box.appendChild(el('div', { class: 'bg-primarySoft border-b border-line' }, [
-      el('div', { class: 'sd-container py-12 md:py-16' }, [
-        el('h1', { class: 'text-[28px] md:text-[36px] font-semibold tracking-tight text-ink', text: title || '案例作品' }),
-        subtitle ? el('p', { class: 'mt-4 text-[15px] text-inkMid pre-wrap max-w-[680px]', text: subtitle }) : null
-      ])
-    ]));
+    box.appendChild(ui.banner(title, subtitle, { fallbackTitle: '案例作品' }));
   }
 
-  /* ---------------- 分类 chips ---------------- */
+  /* ---------------- 分类 pills ---------------- */
   function chip(label, code, active) {
     return el('button', {
       type: 'button',
-      class: 'px-4 py-2 rounded-full border text-sm transition-colors duration-200 ' +
-        (active ? 'border-primary bg-primary text-white' : 'border-line bg-white text-inkMid hover:border-primary hover:text-primary'),
+      class: 'sd-chip ' + (active ? 'sd-chip-on' : 'sd-chip-off'),
       text: label,
       onclick: function () {
         if (state.category === code && code !== '') return;
@@ -96,23 +90,24 @@
 
   /* ---------------- 案例卡片 ---------------- */
   function caseCard(item) {
-    var card = el('button', {
-      type: 'button',
-      class: 'sd-card sd-card-hover overflow-hidden flex flex-col text-left w-full',
-      'aria-label': item.title || '案例详情'
-    }, [
-      ui.img(item.coverImage, item.title, 800, 600, 'h-[190px] w-full object-cover'),
-      el('div', { class: 'p-5 flex-1 flex flex-col' }, [
-        el('h3', { class: 'text-[16px] font-semibold text-ink', text: item.title || '' }),
-        el('p', { class: 'mt-2 text-sm text-inkMid pre-wrap line-clamp-3 flex-1', text: item.summary || '' }),
-        el('div', { class: 'mt-4 inline-flex items-center gap-1 text-sm text-primary' }, [
-          el('span', { text: '查看详情' }),
-          el('span', { html: ui.ICONS.arrowRight })
-        ])
-      ])
-    ]);
-    card.addEventListener('click', function () { openDetail(item.id); });
-    return card;
+    return ui.caseCard(item, {
+      mode: 'button',
+      categoryName: categoryName(item.category),
+      summaryClamp: 2,
+      actionText: '查看详情',
+      onActivate: function (target) { openDetail(target.id); }
+    });
+  }
+
+  /** 分类 code → 展示名（取不到时返回空，则不显示 pill） */
+  function categoryName(code) {
+    if (!code) return '';
+    for (var i = 0; i < state.categories.length; i++) {
+      if (state.categories[i] && state.categories[i].code === code) {
+        return state.categories[i].name || code;
+      }
+    }
+    return '';
   }
 
   /* ---------------- 列表 + 分页 ---------------- */
@@ -178,10 +173,10 @@
     box.appendChild(row);
   }
 
-  /* ---------------- 详情弹窗 ---------------- */
+  /* ---------------- 详情弹窗（左图 + 右信息） ---------------- */
   function infoBlock(title, text) {
     if (!text) return null;
-    return el('div', { class: 'mb-6' }, [
+    return el('div', { class: 'mb-5 last:mb-0' }, [
       el('h4', { class: 'text-sm font-medium text-inkWeak mb-2', text: title }),
       el('p', { class: 'text-[15px] text-inkDeep pre-wrap', text: text })
     ]);
@@ -193,7 +188,7 @@
     images.forEach(function (image) {
       row.appendChild(ui.img(image.imageUrl, image.altText || '', 800, 600, 'h-[160px] w-[240px] shrink-0 rounded-ctl object-cover'));
     });
-    return el('div', { class: 'mb-6' }, [
+    return el('div', { class: 'mb-5' }, [
       el('h4', { class: 'text-sm font-medium text-inkWeak mb-2', text: '项目图集' }),
       row
     ]);
@@ -210,20 +205,33 @@
 
     api.get('/public/cases/' + encodeURIComponent(id))
       .then(function (detail) {
+        var meta = (detail.categoryName || detail.category || '') +
+          (detail.createTime ? ' · ' + ui.fmtTime(detail.createTime) : '');
         var body = el('div', { class: 'px-6 py-5 overflow-y-auto' }, [
-          el('h3', { class: 'text-lg font-semibold text-ink mb-1', text: detail.title || '' }),
-          el('p', { class: 'text-xs text-inkWeak mb-5', text: (detail.categoryName || detail.category || '') + (detail.createTime ? ' · ' + ui.fmtTime(detail.createTime) : '') }),
-          infoBlock('项目简介', detail.summary),
-          infoBlock('技术 / 制作方式', detail.techOrMethod),
-          infoBlock('交付成果', detail.deliverResult),
+          el('div', { class: 'grid gap-6 md:grid-cols-2' }, [
+            el('div', { class: 'overflow-hidden rounded-card border border-line bg-surfaceSoft' }, [
+              ui.img(detail.coverImage, detail.title, 800, 600, 'aspect-[4/3] w-full object-cover')
+            ]),
+            el('div', {}, [
+              el('h3', { class: 'text-lg font-semibold text-ink', text: detail.title || '' }),
+              meta ? el('p', { class: 'mt-1 text-xs text-inkWeak', text: meta }) : null,
+              el('div', { class: 'mt-4' }, [
+                infoBlock('项目简介', detail.summary),
+                infoBlock('技术 / 制作方式', detail.techOrMethod),
+                infoBlock('交付成果', detail.deliverResult)
+              ])
+            ])
+          ]),
           galleryBlock(detail.images)
         ]);
-        dialog.panel.querySelector('.overflow-y-auto').replaceWith(body);
+        var target = dialog.panel.querySelector('.overflow-y-auto');
+        if (target) target.replaceWith(body);
       })
       .catch(function (err) {
         console.warn('[sdtech] case detail 加载失败：', err && err.message);
         var errorBox = el('div', { class: 'px-6 py-5 overflow-y-auto' }, [ui.fallback(null, '案例详情')]);
-        dialog.panel.querySelector('.overflow-y-auto').replaceWith(errorBox);
+        var target = dialog.panel.querySelector('.overflow-y-auto');
+        if (target) target.replaceWith(errorBox);
       });
   }
 
