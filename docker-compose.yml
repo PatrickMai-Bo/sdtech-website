@@ -65,9 +65,14 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
+      # https://patrickmai.cn（证书 2026-11-12 到期，需续期）
+      - "443:443"
     volumes:
       - ./frontend:/usr/share/nginx/html:ro
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      # patrickmai.cn 真实证书（TrustAsia DV，从投资管理系统处复用）
+      - ./ssl/patrickmai.crt:/etc/nginx/ssl/patrickmai.crt:ro
+      - ./ssl/patrickmai.key:/etc/nginx/ssl/patrickmai.key:ro
       - sdtech-uploads:/var/www/uploads
     environment:
       TZ: Asia/Shanghai

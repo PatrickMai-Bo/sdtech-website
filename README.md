@@ -27,13 +27,19 @@
 
 ## 二、在线访问地址
 
-> 已实际部署上线，可直接访问。
+> 已实际部署上线，可直接访问。域名 `patrickmai.cn` 与 `www.patrickmai.cn` 均指向本服务。
 
 | 用途 | 地址 |
 | --- | --- |
-| 前台首页 | http://106.52.219.144/ |
-| 后台登录 | http://106.52.219.144/admin/login.html |
-| 健康检查 | http://106.52.219.144/api/public/health |
+| 前台首页（域名，HTTPS） | https://patrickmai.cn/ |
+| 前台首页（IP，HTTP） | http://106.52.219.144/ |
+| 后台登录 | https://patrickmai.cn/admin/login.html（或 http://106.52.219.144/admin/login.html） |
+| 健康检查 | https://patrickmai.cn/api/public/health |
+
+说明：
+- 访问 `http://patrickmai.cn/` 会 301 跳转到 `https://patrickmai.cn/`；IP 直访仍走 80 端口 HTTP，不影响使用。
+- 证书为 TrustAsia DV（CN=patrickmai.cn，SAN 含 www），**2026-11-12 到期，到期前需续期**，续期后替换服务器 `/home/ubuntu/sdtech/ssl/patrickmai.crt|key` 并 `docker compose up -d nginx`。
+- 同服务器还跑着投资管理系统：https://106.52.219.144:1993/ 与 http://106.52.219.144:2009/（它原本占用 443，现已让给本站）。
 
 健康检查返回示例：
 
